@@ -5,6 +5,15 @@ import pandas as pd
 import numpy as np
 import joblib
 
+st.title("Deployment Test")
+
+st.write("Python:", sys.version)
+
+try:
+    import joblib
+    st.success("Joblib installed: " + joblib.__version__)
+except ImportError:
+    st.error("Joblib is not installed")
 
 st.set_page_config(
     page_title="Customer Churn Prediction",
