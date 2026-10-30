@@ -4,9 +4,31 @@ import importlib.util
 import pandas as pd
 import numpy as np
 import joblib
-import sys
 import subprocess
-import streamlit as st
+
+st.title("Deployment Diagnostic")
+
+st.write("Python:", sys.version)
+st.write("Python executable:", sys.executable)
+
+result = subprocess.run(
+    [sys.executable, "-m", "pip", "install", "joblib==1.4.2"],
+    capture_output=True,
+    text=True
+)
+
+st.write("Installation output:")
+st.code(result.stdout)
+
+st.write("Installation errors:")
+st.code(result.stderr)
+
+try:
+    import joblib
+    st.success("Joblib installed successfully!")
+    st.write("Joblib version:", joblib.__version__)
+except Exception as e:
+    st.error(str(e))
 
 st.write("Python version:", sys.version)
 
