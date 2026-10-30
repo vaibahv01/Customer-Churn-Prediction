@@ -2,14 +2,6 @@ import streamlit as st
 import sys
 import importlib.util
 
-st.title("Deployment Diagnostics")
-
-st.write("Python version:", sys.version)
-st.write("Python executable:", sys.executable)
-
-joblib_spec = importlib.util.find_spec("joblib")
-
-st.write("Joblib installed:", joblib_spec is not None)
 
 st.set_page_config(
     page_title="Customer Churn Prediction",
