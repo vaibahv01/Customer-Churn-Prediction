@@ -4,6 +4,21 @@ import importlib.util
 import pandas as pd
 import numpy as np
 import joblib
+import sys
+import subprocess
+import streamlit as st
+
+st.write("Python version:", sys.version)
+
+result = subprocess.run(
+    [sys.executable, "-m", "pip", "show", "joblib"],
+    capture_output=True,
+    text=True
+)
+
+st.write("Joblib details:", result.stdout)
+st.write("Installation error:", result.stderr)
+
 
 st.title("Deployment Test")
 
