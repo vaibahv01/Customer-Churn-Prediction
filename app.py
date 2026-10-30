@@ -139,48 +139,71 @@ if uploaded_file is not None:
     st.subheader("Uploaded Customer Data")
     st.dataframe(bulk_data, use_container_width=True)
 
+    st.write("Total Customers Uploaded:", len(bulk_data))
+
     if st.button("Predict Bulk Churn"):
 
-        required_columns = [
-            "gender", "SeniorCitizen", "Partner", "Dependents",
-            "tenure", "PhoneService", "MultipleLines",
-            "InternetService", "OnlineSecurity", "OnlineBackup",
-            "DeviceProtection", "TechSupport", "StreamingTV",
-            "StreamingMovies", "Contract", "PaperlessBilling",
-            "PaymentMethod", "MonthlyCharges", "TotalCharges"
+        customer_data = bulk_data.copy()
+
+        # Remove columns not used during model training
+        columns_to_remove = ["customerID", "Churn", "Tenure_Group"]
+
+        customer_data = customer_data.drop(
+            columns=columns_to_remove,
+            errors="ignore"
+        )
+
+        # Numerical columns
+        numerical_cols = [
+            "SeniorCitizen",
+            "tenure",
+            "MonthlyCharges",
+            "TotalCharges"
         ]
 
-        missing_columns = [
-            col for col in required_columns
-            if col not in bulk_data.columns
-        ]
-
-        if missing_columns:
-            st.error(f"Missing columns: {missing_columns}")
-
-        else:
-            customer_data = bulk_data[required_columns].copy()
-
-            predictions = model.predict(customer_data)
-            probabilities = model.predict_proba(customer_data)[:, 1]
-
-            bulk_data["Churn_Prediction"] = [
-                "Yes" if p == 1 else "No"
-                for p in predictions
-            ]
-
-            bulk_data["Churn_Probability"] = (
-                probabilities * 100
-            ).round(2)
-
-            st.subheader("Prediction Results")
-            st.dataframe(bulk_data)
-
-            csv = bulk_data.to_csv(index=False).encode("utf-8")
-
-            st.download_button(
-                label="Download Prediction Results",
-                data=csv,
-                file_name="customer_churn_predictions.csv",
-                mime="text/csv"
+        # Convert numerical columns to numeric format
+        for col in numerical_cols:
+            customer_data[col] = pd.to_numeric(
+                customer_data[col],
+                errors="coerce"
             )
+
+        # Handle missing numerical values
+        customer_data["TotalCharges"] = customer_data["TotalCharges"].fillna(0)
+
+        for col in ["SeniorCitizen", "tenure", "MonthlyCharges"]:
+            customer_data[col] = customer_data[col].fillna(
+                customer_data[col].median()
+            )
+
+        # Handle missing categorical values
+        categorical_cols = [
+            col for col in customer_data.columns
+            if col not in numerical_cols
+        ]
+
+        customer_data[categorical_cols] = (
+            customer_data[categorical_cols].fillna("Unknown")
+        )
+
+        # Predict
+        predictions = model.predict(customer_data)
+
+        probabilities = model.predict_proba(customer_data)[:, 1]
+
+        bulk_data["Prediction"] = [
+            "Churn" if p == 1 else "Not Churn"
+            for p in predictions
+        ]
+
+        bulk_data["Churn Probability (%)"] = (
+            probabilities * 100
+        ).round(2)
+
+        st.subheader("Bulk Prediction Results")
+
+        st.dataframe(bulk_data, use_container_width=True)
+
+        st.success(
+            f"Successfully predicted {len(bulk_data)} customers!"
+        )
