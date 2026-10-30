@@ -137,7 +137,7 @@ if uploaded_file is not None:
     bulk_data = pd.read_csv(uploaded_file)
 
     st.subheader("Uploaded Customer Data")
-    st.dataframe(bulk_data.head())
+    st.dataframe(bulk_data, use_container_width=True)
 
     if st.button("Predict Bulk Churn"):
 
